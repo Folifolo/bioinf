@@ -72,4 +72,109 @@ def two_four (P):
     res.sort()
     return ' '.join(str(x) for x in res)
 
-print(two_two('ATGGCCATGGCCCCCAGAACTGAGATCAATAGTACCCGTATTAACGGGTGA','MA'))
+
+
+def expand(Peptides):
+    dict = {'G': 57, 'A': 71, 'S': 87, 'P': 97, 'V': 99, 'T': 101, 'C': 103, 'I': 113, 'L': 113, 'N': 114, 'D': 115, 'K': 128, 'Q': 128, 'E': 129, 'M': 131, 'H': 137, 'F': 147, 'R': 156, 'Y': 163, 'W': 186}
+    res = set()
+    if len(Peptides) != 0:
+        for peptide in Peptides:
+            for amino in dict:
+                res.add(peptide+amino)
+    #else:
+    #    for amino in dict:
+    #        res.add(amino)
+    return res
+
+def consist(pep_spect, Spectrum):
+    temp = pep_spect.copy()
+    Spec = Spectrum.copy()
+    for elem in pep_spect:
+        if elem in Spec:
+            Spec.remove(elem)
+            temp.remove(elem)
+    if len(temp) == 0:
+        return True
+    return False
+
+def three_one (Spectrum):
+    dict = {'G': 57, 'A': 71, 'S': 87, 'P': 97, 'V': 99, 'T': 101, 'C': 103, 'I': 113, 'L': 113, 'N': 114, 'D': 115, 'K': 128, 'Q': 128, 'E': 129, 'M': 131, 'H': 137, 'F': 147, 'R': 156, 'Y': 163, 'W': 186}
+    Peptides = {''}
+    res = set()
+    while len(Peptides) != 0:
+        Peptides = expand(Peptides)
+        peptides_temp = Peptides.copy()
+        for peptide in Peptides:
+            pep_spect = two_four(peptide)
+            not_cycle = two_four(peptide, is_cycle=False)
+            if pep_spect[-1] == Spectrum[-1]:
+                if pep_spect == Spectrum:
+                    temp = str('')
+                    for elem in peptide:
+                        temp += str(dict[elem]) +'-'
+                    res.add(temp[:-1])
+                peptides_temp.remove(peptide)
+            elif not consist(not_cycle, Spectrum):
+                peptides_temp.remove(peptide)
+        Peptides = peptides_temp
+    return  res
+
+def three_two (Peptide, Spectrum, is_cycle = False):
+    score = 0
+    copy_spec = Spectrum.copy()
+    if Peptide == '':
+        theor_spectrum = ['0']
+    else:
+        theor_spectrum = two_four(Peptide, is_cycle = is_cycle)
+    for element in theor_spectrum:
+        if element in copy_spec:
+            copy_spec.remove(element)
+            score+=1
+    return score
+
+def Trim(Leaderboard, Spectrum, N):
+    leader = dict()
+    result = set()
+    if len(Leaderboard) == 0:
+        return set()
+    for peptide in Leaderboard:
+        leader[peptide] = three_two(peptide, Spectrum)
+    sort_leader = sorted(leader.items(), key=lambda x: x[1], reverse = True)
+    m = sort_leader[N-1][1]
+    if sort_leader[N-1][1] != sort_leader[N][1]:
+        res = (sort_leader[:N][:])
+        for elem in res:
+            result.add(elem[0])
+        return result
+
+    for i in range(len(Leaderboard)-N+1):
+        if sort_leader[N-1][1] != sort_leader[N+i-1][1]:
+            break
+
+    res = (sort_leader[:N+i-1][:])
+    for elem in res:
+        result.add(elem[0])
+    return result
+
+
+def three_three (N, Spectrum):
+    dict = {'G': 57, 'A': 71, 'S': 87, 'P': 97, 'V': 99, 'T': 101, 'C': 103, 'I': 113, 'L': 113, 'N': 114, 'D': 115, 'K': 128, 'Q': 128, 'E': 129, 'M': 131, 'H': 137, 'F': 147, 'R': 156, 'Y': 163, 'W': 186}
+    Leaderboard = {''}
+    LeaderPeptide = ''
+    while len(Leaderboard) !=0:
+        Leaderboard = expand(Leaderboard)
+        leaderboard_temp = Leaderboard.copy()
+        for peptide in Leaderboard:
+            pep_spect = two_four(peptide)
+            if pep_spect[-1] == Spectrum[-1]:
+                if three_two(peptide, Spectrum) > three_two(LeaderPeptide, Spectrum):
+                    LeaderPeptide = peptide
+            elif int(pep_spect[-1]) > int(Spectrum[-1]):
+                leaderboard_temp.remove(peptide)
+        leaderboard_temp = Trim(leaderboard_temp, Spectrum, N)
+        Leaderboard = leaderboard_temp
+
+    result = []
+    for char in LeaderPeptide:
+        result.append(dict[char])
+    return result
