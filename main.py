@@ -178,3 +178,77 @@ def three_three (N, Spectrum):
     for char in LeaderPeptide:
         result.append(dict[char])
     return result
+
+
+def difference(Pattern1, Pattern2):
+    dif = 0
+    if len(Pattern1) != len(Pattern2):
+        return 10000000
+    for i in range(len(Pattern1)):
+        if Pattern1[i] != Pattern2[i]:
+           dif += 1
+    return dif
+
+def pattern_generator(pattern, d):
+    peptides = {""}
+    for i in range(len(pattern)):
+        peptides = expand_atcg(peptides)
+    peptides_copy = peptides.copy()
+    for elem in peptides:
+        if difference(pattern, elem) > d:
+            peptides_copy.remove(elem)
+    return peptides_copy
+
+def expand_atcg(Peptides):
+    dict = {"A", "T", "C", "G"}
+    res = set()
+    if len(Peptides) != 0:
+        for peptide in Peptides:
+            for amino in dict:
+                res.add(peptide+amino)
+
+    return res
+
+def four_one(Dna, k, d):
+    Patterns = set()
+    m = len(Dna[0])
+    for i in range(len(Dna[0])-k+1):
+        pattern = Dna[0][i:i+k]
+        pattern_set = pattern_generator(pattern, d)
+        for pattern_ in pattern_set:
+            pattern_in_dna = False
+            for string in Dna:#[1:]
+                pattern_in_string = False
+                for j in range(len(string)-k+1):
+                    if difference(pattern_, string[j:j+k]) <= d:
+                        pattern_in_string = True
+                if pattern_in_string == False:
+                    break
+            else:
+                Patterns.add(pattern_)
+
+    return Patterns
+
+
+
+def d(Pattern, Dna):
+    res = 0
+    for string in Dna:
+        minimum = 10000000
+        for i in range(len(string)-len(Pattern)+1):
+            dif = difference(string[i:i+len(Pattern)], Pattern)
+            if dif < minimum:
+                minimum = dif
+        res += minimum
+    return res
+
+
+def four_two(k, Dna):
+    distance = 100000000
+    tmp = "A"*k
+    pattern_set = pattern_generator(tmp, k*2)
+    for pattern in pattern_set:
+        if distance > d(pattern, Dna):
+            distance = d
+            Median = pattern
+    return Median
